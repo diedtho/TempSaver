@@ -1,4 +1,5 @@
 import os
+import re
 import shutil
 from datetime import datetime
 from PySide6 import QtCore, QtWidgets
@@ -23,9 +24,14 @@ class MyWidget(QtWidgets.QWidget):
         self.button.clicked.connect(self.backup_temp_files)
 
     def backup_temp_files(self):
-        # Zielordner mit Zeitstempel erstellen
+        # Zielordner mit Zeitstempel + Command erstellen
+        command = ""
+        with open(r'D:\Temp\INSCommand.ini', 'r', encoding='utf-8') as fr:
+            for line in fr.readlines():
+                if line.startswith('Command='):
+                    command = re.sub(r'^Command=(.*)\n$', r'\1', line)
         current_time = datetime.now()
-        target_folder_name = current_time.strftime("%Y%m%d_%H%M%S")
+        target_folder_name = current_time.strftime("%H%M%S") + "_" + command
         target_folder_path = os.path.join(self.target_dir, target_folder_name)
         os.makedirs(target_folder_path)
 
