@@ -16,21 +16,23 @@ class CommonUtilities:
         print('CommonUtilities initializing!')
         self.count = 0
         self.root_temp = r'D:\Temp'
-        self.clean_temp_dir()
         self.dest_dir = r'D:\Backup'
         self.cmd_path = r'D:\Temp\INSCommand.ini'
         self.dest_folder = "tmp"
         self.tmp_folder = os.path.join(self.dest_dir, self.dest_folder)
         self.path_to_save = self.tmp_folder
         self.path_to_screenshots = os.path.join(self.dest_dir, 'Screenshots')
+        self.cmd_timestamp_prelast = 0
+        self.cmd_timestamp_last = 0
+
+    def initialize(self):
+        self.clean_temp_dir()
+        self.clean_backup_dir()
         Path(self.path_to_save).mkdir(parents=True, exist_ok=True)
         Path(self.path_to_screenshots).mkdir(parents=True, exist_ok=True)
-        self.cmd_timestamp_prelast = 0
-        self.cmd_timestamp_last = os.path.getmtime(self.cmd_path) if os.path.isfile(self.cmd_path) else 0
-
     def clean_temp_dir(self):
-        for f in os.listdir(self.dest_dir):
-            if os.path.isfile(f):
+        for f in os.listdir(self.root_temp):
+            if os.path.isfile(os.path.join(self.root_temp, f)):
                 try:
                     os.remove(os.path.join(self.root_temp, f))
                 except Exception as e:
@@ -38,13 +40,12 @@ class CommonUtilities:
 
     def clean_backup_dir(self):
         for f in os.listdir(self.dest_dir):
-            if os.path.isfile(f):
+            if os.path.isfile(os.path.join(self.dest_dir, f)):
                 try:
                     os.remove(os.path.join(self.dest_dir, f))
                 except Exception as e:
                     print(f'Error deleting file:\n{e}')
-
-            if os.path.isdir(f):
+            if os.path.isdir(os.path.join(self.dest_dir, f)):
                 try:
                     shutil.rmtree(os.path.join(self.dest_dir, f))
                 except Exception as e:
@@ -60,7 +61,7 @@ class MouseListener:
 
     def on_click(self, x, y, button, pressed):
         if button == mouse.Button.left and pressed:
-            self.take_screenshot()
+            self.take_screenshot(x, y)
 
 
     def start(self):
@@ -70,17 +71,17 @@ class MouseListener:
                 if not listener.running:
                     self.running = False
 
-    def take_screenshot(self):
+    def take_screenshot(self, x, y):
         m = get_monitors()
         print(m)
         screen_width, screen_height = m[0].width, m[0].height
         # Größe des Bereichs, der aufgenommen werden soll
         width, height = 1200, 1200
         # Berechnung der Koordinaten des Bereichs
-        x1 = max(0, self.mouse_x - width // 2)
-        y1 = max(0, self.mouse_y - height // 2)
-        x2 = min(screen_width, self.mouse_x + width // 2)
-        y2 = min(screen_height, self.mouse_y + height // 2)
+        x1 = max(0, x - width // 2)
+        y1 = max(0, y - height // 2)
+        x2 = min(screen_width, x + width // 2)
+        y2 = min(screen_height, y + height // 2)
         im = pyscreenshot.grab(bbox=(x1, y1, x2, y2))
         print(f'path to save: {self.common_utils.path_to_save}')
         filename = f"screenshot_{self.common_utils.count}.png"
@@ -107,10 +108,10 @@ class CommandObserver:
             cmd_timestamp_new = os.path.getmtime(self.common_utils.cmd_path)
         else:
             cmd_timestamp_new = 0
-        print(f'timestamp new: {cmd_timestamp_new}')
-        print(f'timestamp old: {self.common_utils.cmd_timestamp_last}')
+        #print(f'timestamp new: {cmd_timestamp_new}')
+        #print(f'timestamp old: {self.common_utils.cmd_timestamp_last}')
         if self.common_utils.cmd_timestamp_last != cmd_timestamp_new:
-            print(f'old path to save: {self.common_utils.path_to_save}')
+            #print(f'old path to save: {self.common_utils.path_to_save}')
             #self.save_all_files()
             self.common_utils.cmd_mtime_str = datetime.fromtimestamp(cmd_timestamp_new).strftime("%H_%M_%S")
             cmd_new = None
@@ -120,7 +121,7 @@ class CommandObserver:
                         cmd_new = re.sub(r'^Command=(.*)\n$', r'\1', line)
             new_folder_name = self.common_utils.cmd_mtime_str + "_" + cmd_new
             self.common_utils.path_to_save = os.path.join(self.common_utils.dest_dir, new_folder_name)
-            print(f'new path to save: {self.common_utils.path_to_save}')
+            #print(f'new path to save: {self.common_utils.path_to_save}')
             Path(self.common_utils.path_to_save).mkdir(parents=True, exist_ok=True)
             self.common_utils.cmd_timestamp_prelast = self.common_utils.cmd_timestamp_last
             self.save_all_files()
@@ -172,6 +173,7 @@ class ThreadOperations:
         c.start()
 
     def run(self):
+        self.common_utils.initialize()
         t1 = threading.Thread(target=self.do_first_thread)
         t2 = threading.Thread(target=self.do_second_thread)
         t1.start()
@@ -183,4 +185,4 @@ class ThreadOperations:
 
 if __name__ == '__main__':
     tt = ThreadOperations()
-    tt.start()
+    tt.run()

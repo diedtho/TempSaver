@@ -16,41 +16,60 @@ class CommonUtilities:
         print('CommonUtilities initializing!')
         self.count = 0
         self.root_temp = r'D:\Temp'
-        self.clean_temp_dir()
         self.dest_dir = r'D:\Backup'
         self.cmd_path = r'D:\Temp\INSCommand.ini'
         self.dest_folder = "tmp"
         self.tmp_folder = os.path.join(self.dest_dir, self.dest_folder)
         self.path_to_save = self.tmp_folder
         self.path_to_screenshots = os.path.join(self.dest_dir, 'Screenshots')
+        self.clean_temp_dir()
+        self.clean_backup_dir()
         Path(self.path_to_save).mkdir(parents=True, exist_ok=True)
         Path(self.path_to_screenshots).mkdir(parents=True, exist_ok=True)
         self.cmd_timestamp_prelast = 0
         self.cmd_timestamp_last = os.path.getmtime(self.cmd_path) if os.path.isfile(self.cmd_path) else 0
+        print('CommonUtilities initialized!')
 
     def clean_temp_dir(self):
-        filelist = [f for f in os.listdir(self.root_temp) if os.path.isfile(f)]
-        for f in filelist:
-            try:
-                os.remove(os.path.join(self.root_temp, f))
-            except Exception as e:
-                print(f'Error deleting:\n{e}')
+        print('Cleaning temp-directory')
+        for f in os.listdir(self.root_temp):
+            if os.path.isfile(f):
+                try:
+                    os.remove(os.path.join(self.root_temp, f))
+                except Exception as e:
+                    print(f'Error deleting:\n{e}')
+
+
+    def clean_backup_dir(self):
+        print('Cleaning backup-directory')
+        for f in os.listdir(self.dest_dir):
+            if os.path.isfile(f):
+                print(f)
+                try:
+                    os.remove(os.path.join(self.dest_dir, f))
+                except Exception as e:
+                    print(f'Error deleting:\n{e}')
+            if os.path.isdir(f):
+                try:
+                    shutil.rmtree(os.path.join(self.root_temp, f))
+                except Exception as e:
+                    print(f'Error deleting:\n{e}')
 
 class MouseListener:
 
     def __init__(self):
-        print('MouseListener started!')
-        self.running = True
         self.common_utils = CommonUtilities()
+        self.running = True
+
 
     def on_click(self, x, y, button, pressed):
         if button == mouse.Button.left and pressed:
             d = ThreadOperations(x, y, self.common_utils)
             d.run()
-            time.sleep(1)
             self.check_command_change()
 
     def start(self):
+        print('MouseListener started!')
         with mouse.Listener(on_click=self.on_click) as listener:
             while self.running:
                 time.sleep(1)
