@@ -26,14 +26,14 @@ class CommonUtilities:
         self.clean_backup_dir()
         Path(self.path_to_save).mkdir(parents=True, exist_ok=True)
         Path(self.path_to_screenshots).mkdir(parents=True, exist_ok=True)
-        self.cmd_timestamp_prelast = 0
-        self.cmd_timestamp_last = os.path.getmtime(self.cmd_path) if os.path.isfile(self.cmd_path) else 0
+        self.cmd_timestamp_prelast = time.time()
+        self.cmd_timestamp_last = time.time()
         print('CommonUtilities initialized!')
 
     def clean_temp_dir(self):
         print('Cleaning temp-directory')
         for f in os.listdir(self.root_temp):
-            if os.path.isfile(f):
+            if os.path.isfile(os.path.join(self.root_temp, f)):
                 try:
                     os.remove(os.path.join(self.root_temp, f))
                 except Exception as e:
@@ -43,13 +43,13 @@ class CommonUtilities:
     def clean_backup_dir(self):
         print('Cleaning backup-directory')
         for f in os.listdir(self.dest_dir):
-            if os.path.isfile(f):
+            if os.path.isfile(os.path.join(self.dest_dir, f)):
                 print(f)
                 try:
                     os.remove(os.path.join(self.dest_dir, f))
                 except Exception as e:
                     print(f'Error deleting:\n{e}')
-            if os.path.isdir(f):
+            if os.path.isdir(os.path.join(self.dest_dir, f)):
                 try:
                     shutil.rmtree(os.path.join(self.root_temp, f))
                 except Exception as e:
@@ -79,31 +79,29 @@ class MouseListener:
     def check_command_change(self):
         if os.path.isfile(self.common_utils.cmd_path):
             cmd_timestamp_new = os.path.getmtime(self.common_utils.cmd_path)
-        else:
-            cmd_timestamp_new = 0
-        print(f'timestamp new: {cmd_timestamp_new}')
-        print(f'timestamp old: {self.common_utils.cmd_timestamp_last}')
-        if self.common_utils.cmd_timestamp_last != cmd_timestamp_new:
-            print(f'old path to save: {self.common_utils.path_to_save}')
-            #self.save_all_files()
-            self.common_utils.cmd_mtime_str = datetime.fromtimestamp(cmd_timestamp_new).strftime("%H_%M_%S")
-            cmd_new = None
-            with open(self.common_utils.cmd_path, 'r', encoding='utf8') as fr:
-                for line in fr.readlines():
-                    if line.startswith('Command='):
-                        cmd_new = re.sub(r'^Command=(.*)\n$', r'\1', line)
-            new_folder_name = self.common_utils.cmd_mtime_str + "_" + cmd_new
-            self.common_utils.path_to_save = os.path.join(self.common_utils.dest_dir, new_folder_name)
-            print(f'new path to save: {self.common_utils.path_to_save}')
-            Path(self.common_utils.path_to_save).mkdir(parents=True, exist_ok=True)
-            self.common_utils.cmd_timestamp_prelast = self.common_utils.cmd_timestamp_last
-            self.save_all_files()
-            self.save_all_screenshots()
-            self.common_utils.cmd_timestamp_last = cmd_timestamp_new
-            try:
-                shutil.copy(self.common_utils.cmd_path, self.common_utils.path_to_save)
-            except shutil.SameFileError:
-                pass
+            print(f'timestamp new: {cmd_timestamp_new}')
+            print(f'timestamp old: {self.common_utils.cmd_timestamp_last}')
+            if self.common_utils.cmd_timestamp_last != cmd_timestamp_new:
+                print(f'old path to save: {self.common_utils.path_to_save}')
+                #self.save_all_files()
+                self.common_utils.cmd_mtime_str = datetime.fromtimestamp(cmd_timestamp_new).strftime("%H_%M_%S")
+                cmd_new = None
+                with open(self.common_utils.cmd_path, 'r', encoding='utf8') as fr:
+                    for line in fr.readlines():
+                        if line.startswith('Command='):
+                            cmd_new = re.sub(r'^Command=(.*)\n$', r'\1', line)
+                new_folder_name = self.common_utils.cmd_mtime_str + "_" + cmd_new
+                self.common_utils.path_to_save = os.path.join(self.common_utils.dest_dir, new_folder_name)
+                print(f'new path to save: {self.common_utils.path_to_save}')
+                Path(self.common_utils.path_to_save).mkdir(parents=True, exist_ok=True)
+                self.common_utils.cmd_timestamp_prelast = self.common_utils.cmd_timestamp_last
+                self.save_all_files()
+                self.save_all_screenshots()
+                self.common_utils.cmd_timestamp_last = cmd_timestamp_new
+                try:
+                    shutil.copy(self.common_utils.cmd_path, self.common_utils.path_to_save)
+                except shutil.SameFileError:
+                    pass
 
     def save_all_files(self):
         for filename in os.listdir(self.common_utils.root_temp):
