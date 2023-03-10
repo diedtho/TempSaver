@@ -51,7 +51,7 @@ class CommonUtilities:
                     print(f'Error deleting:\n{e}')
             if os.path.isdir(os.path.join(self.dest_dir, f)):
                 try:
-                    shutil.rmtree(os.path.join(self.root_temp, f))
+                    shutil.rmtree(os.path.join(self.dest_dir, f))
                 except Exception as e:
                     print(f'Error deleting:\n{e}')
 
