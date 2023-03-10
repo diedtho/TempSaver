@@ -15,15 +15,15 @@ class CommonUtilities:
     def __init__(self):
         print('CommonUtilities initializing!')
         self.count = 0
-        self.src_dir = r'/home/zarko/Temp'
-        self.dest_dir = r'/home/zarko/Backup'
-        self.file_path = r'/tmp'
+        self.src_dir = r'D:\Temp'
+        self.dest_dir = r'D:\Backup'
+        self.file_path = r'D:\Temp\INSCommand.ini'
         self.dest_folder = "temp"
         self.tmp_folder = os.path.join(self.dest_dir, self.dest_folder)
         self.path_to_save = self.tmp_folder
         self.path_to_screenshots = os.path.join(self.dest_dir, 'Screenshots')
-        self.cmd_timestamp_prelast = 0
-        self.cmd_timestamp_last = 0
+        self.cmd_timestamp_prelast = time.time()
+        self.cmd_timestamp_last = time.time()
         self.initialize()
 
     def initialize(self):
@@ -33,7 +33,7 @@ class CommonUtilities:
         Path(self.path_to_screenshots).mkdir(parents=True, exist_ok=True)
 
     def clean_src_dir(self):
-        if os.path.isdir(os.path(self.src_dir)):
+        if os.path.isdir(self.src_dir):
             for f in os.listdir(self.src_dir):
                 if os.path.isfile(f):
                     try:
@@ -42,7 +42,7 @@ class CommonUtilities:
                         print(f'Error deleting file:\n{e}')
 
     def clean_dest_dir(self):
-        if os.path.isdir(os.path(self.dest_dir)):
+        if os.path.isdir(self.dest_dir):
             for f in os.listdir(self.dest_dir):
                 if os.path.isfile(f):
                     try:
@@ -86,7 +86,7 @@ class MouseListener:
         y1 = max(0, y - height // 2)
         x2 = min(screen_width, x + width // 2)
         y2 = min(screen_height, y + height // 2)
-        im = ImageGrab.grab(bbox=(x1, y1, x2, y2), xdisplay="")  # xdisplay="" if x11 else xdisplay=None
+        im = ImageGrab.grab(bbox=(x1, y1, x2, y2), xdisplay=None)  # xdisplay="" if x11 else xdisplay=None
         print(f'path to save: {self.common_utils.path_to_save}')
         filename = f"screenshot_{self.common_utils.count}.png"
         filepath = os.path.join(self.common_utils.path_to_screenshots, filename)
